@@ -12,8 +12,6 @@
       instance_type: "{{ instance_type }}"
       security_group: "{{ sg_id }}"
       image_id: "{{ image_id }}"
-      network_interfaces:
-        - assign_public_ip: true
       tags:
         Name: "{{ item }}"
     loop: "{{ instances }}"
