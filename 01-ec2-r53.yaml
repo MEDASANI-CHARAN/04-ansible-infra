@@ -1,0 +1,19 @@
+- name: create ec2 and r53 records
+  hosts: local
+  connection: local
+  vars:
+  vars_files:
+  - files.yaml
+  tasks:
+  - name: create ec2  
+    amazon.aws.ec2_instance:
+      name: "{{ item }}"
+      vpc_subnet_id: "{{ subnet_id }}"
+      instance_type: "{{ instance_type }}"
+      security_group: "{{ sg_id }}"
+      image_id: "{{ image_id }}"
+      network_interfaces:
+        - assign_public_ip: true
+      tags:
+        Name: "{{ item }}"
+    loop: "{{ instances }}"
