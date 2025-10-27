@@ -28,8 +28,21 @@
       record: "{{ item.item }}.{{ zone_name }}"
       type: A
       ttl: 1
-      value: "{{ item.instances[0].public_ip_address }}"
+      value: "{{ item.instances[0].private_ip_address }}"
       wait: true
       overwrite: true
     loop: "{{ ec2_instance_output.results }}"
-    when: item.item == "frontend"
+  
+  - name: Create Route53 records for frontend and root domain
+    amazon.aws.route53:
+      state: present
+      zone: "{{ zone_name }}"
+      record: "{{ item.record }}"
+      type: A
+      ttl: 1
+      value: "{{ item.value }}"
+    loop:
+      - record: "frontend.{{ zone_name }}"
+        value: "{{ ec2_instance_output.results[0].instances[0].private_ip_address }}"
+      - record: "{{ zone_name }}"
+        value: "{{ ec2_instance_output.results[0].instances[0].public_ip_address }}"
