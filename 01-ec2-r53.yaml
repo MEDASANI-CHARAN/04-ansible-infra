@@ -42,7 +42,5 @@
       ttl: 1
       value: "{{ item.value }}"
     loop:
-      - record: "frontend.{{ zone_name }}"
-        value: "{{ ec2_instance_output.results[0].instances[0].private_ip_address }}"
       - record: "{{ zone_name }}"
         value: "{{ ec2_instance_output.results[0].instances[0].public_ip_address }}"
