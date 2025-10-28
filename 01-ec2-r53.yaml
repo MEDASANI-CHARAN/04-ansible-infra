@@ -50,14 +50,3 @@
         state: absent
       loop: "{{ instances }}"
       tags: destroy
-
-    - name: Delete Route53 records
-      amazon.aws.route53:
-        state: absent
-        zone: "{{ zone_name }}"
-        record: "{{ item.record }}"
-        type: A
-        ttl: 1
-        value: "{{ item.value }}"
-      loop: "{{ records | from_yaml }}"
-      tags: destroy
