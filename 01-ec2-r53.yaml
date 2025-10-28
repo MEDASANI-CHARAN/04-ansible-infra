@@ -21,16 +21,29 @@
     ansible.builtin.debug:
       msg: "{{ ec2_instance_output }}"
   
-  - name: create r53 records
+  - name: Create Route53 records for all instances
     amazon.aws.route53:
       state: present
       zone: "{{ zone_name }}"
-      record: "{{ item.item }}.{{ zone_name }}"
+      record: "{{ item.record }}"
       type: A
       ttl: 1
-      value: "{{ item.instances[0].private_ip_address }}"
-      wait: true
+      value: "{{ item.value }}"
       overwrite: true
-    loop: 
-    - "{{ ec2_instance_output.results }}"
-    - "{{ ec2_instance_output.results[0].instances[0].public_ip_address }}"
+      wait: true
+    loop: >
+      {{
+        ec2_instance_output.results
+        | map('extract', 'instances')
+        | map('first')
+        | list
+        | map('community.general.dict', {
+            'record': item.tags.Name + '.' + zone_name,
+            'value': item.private_ip_address
+          })
+        | list
+        + [
+            {'record': 'daws2025.online',
+            'value': (ec2_instance_output.results | selectattr('item', 'equalto', 'frontend') | first).instances[0].public_ip_address}
+          ]
+      }}
