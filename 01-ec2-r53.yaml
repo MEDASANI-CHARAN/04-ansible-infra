@@ -21,7 +21,7 @@
     ansible.builtin.debug:
       msg: "{{ ec2_instance_output }}"
   
-  - name: Create Route53 records for all instances (frontend gets both public & private)
+  - name: Create Route53 records for all instances
     amazon.aws.route53:
       state: present
       zone: "{{ zone_name }}"
@@ -31,21 +31,17 @@
       value: "{{ item.value }}"
       overwrite: true
       wait: true
-    loop: "{{ route53_records }}"
+    loop: "{{ query('list', records) }}"
     vars:
-      route53_records: >
-        {%- set records = [] -%}
-        {%- for r in ec2_instance_output.results -%}
-          {%- set name = r.item -%}
-          {%- set private_ip = r.instances[0].private_ip_address -%}
-          {%- set public_ip = r.instances[0].public_ip_address -%}
-
-          # Private record for every instance
-          {%- set _ = records.append({'record': name ~ '.' ~ zone_name, 'value': private_ip}) -%}
-
-          # Public record only for frontend
-          {%- if name == 'frontend' -%}
-            {%- set _ = records.append({'record': zone_name, 'value': public_ip}) -%}
-          {%- endif -%}
-        {%- endfor -%}
-        {{ records }}
+      records: >
+        {% set r = [] %}
+        {% for i in ec2_instance_output.results %}
+          {% set name = i.item %}
+          {% set private_ip = i.instances[0].private_ip_address %}
+          {% set public_ip = i.instances[0].public_ip_address %}
+          {% set _ = r.append({'record': name + '.' + zone_name, 'value': private_ip}) %}
+          {% if name == 'frontend' %}
+            {% set _ = r.append({'record': zone_name, 'value': public_ip}) %}
+          {% endif %}
+        {% endfor %}
+        {{ r }}
