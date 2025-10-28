@@ -44,9 +44,11 @@
           {{ r }}
       tags: create
 
-    - name: Terminate EC2 instances
-      amazon.aws.ec2_instance:
-        name: "{{ item }}"
-        state: absent
-      loop: "{{ instances }}"
-      tags: destroy
+- name: Terminate EC2 instances
+  amazon.aws.ec2_instance:
+    filters:
+      "tag:Name": "{{ item }}"
+    state: absent
+    wait: yes
+  loop: "{{ instances }}"
+  tags: destroy
