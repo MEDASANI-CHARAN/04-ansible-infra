@@ -31,7 +31,7 @@
       value: "{{ item.value }}"
       overwrite: true
       wait: true
-    loop: "{{ records }}"
+    loop: "{{ records | from_yaml }}"
     vars:
       records: >
         {% set r = [] %}
